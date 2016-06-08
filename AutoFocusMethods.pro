@@ -34,14 +34,18 @@ LIBS += -lopencv_nonfree
 SOURCES += main.cpp\
         mainwindow.cpp \
     clickhandler.cpp \
-    squarewindow.cpp
+    squarewindow.cpp \
+    autofocusmethods.cpp \
+    focusmetrics.cpp
 
 HEADERS  += mainwindow.h \
     clickablelabel.h \
     clickhandler.h \
     imageconverter.h \
     squarewindow.h \
-    rectanglewatcher.h
+    rectanglewatcher.h \
+    autofocusmethods.h \
+    focusmetrics.h
 
 FORMS    += mainwindow.ui \
     squarewindow.ui

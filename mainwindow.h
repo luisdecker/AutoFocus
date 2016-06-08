@@ -21,6 +21,7 @@ public:
     bool roiSelecionado = false;
     bool arrasto = false;
     cv::Rect rect;
+    bool pointOnImage( cv::Point ponto );
 
 private:
     bool loaded = false;

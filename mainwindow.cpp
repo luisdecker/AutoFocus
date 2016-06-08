@@ -67,19 +67,20 @@ void MainWindow::on_selectAreaButton_clicked() {
     cv::namedWindow( "Selecione a regiao de interesse!",CV_WINDOW_AUTOSIZE ); //Cria a janela de seleção de ROI - OCV pq peidei na farofa com o qt
     assert( loadedImageOk() );
     loadedImage.copyTo( imagem );//Copia a imagem carregada
-    if( roiSelecionado ) {
-        ROI = cv::Mat( imagem,rect );
+    cv::setMouseCallback( "Selecione a regiao de interesse!",MainWindow::cvMouseHandler ,this );//Adiciona o tratador de mouse
+    cv::imshow( "Selecione a regiao de interesse!",imagem );//Mostra a imagem
+    cv::waitKey( 0 );//Espera o elemento apertar um botao
+    std::cout << "Selecionou ROI" << std::endl;
+    cv::rectangle( imagem,rect,cv::Scalar( 0,0,255 ) );
+    if( pointOnImage( rect.tl() )
+        &&pointOnImage( rect.br() ) ) {
+        ROI = cv::Mat( loadedImage,rect );
+        cv::imshow( "Roi selecionado", ROI );
     }
-    cv::setMouseCallback( "Selecione a regiao de interesse!",MainWindow::cvMouseHandler ,this );
-    cv::imshow( "Selecione a regiao de interesse!",imagem );
-    if( !roiSelecionado ) {
-        cv::waitKey( 0 );
-        std::cout << "Selecionou ROI" << std::endl;
-        cv::rectangle( imagem,rect,cv::Scalar( 0,0,255 ) );
-        updateDisplayImage( imagem );
-        cv::destroyAllWindows();
-    } else {
-    }
+    cv::waitKey( 1000 );
+    roiSelecionado = true;
+    updateDisplayImage( imagem );
+    cv::destroyAllWindows();
 }
 //=========================================================
 void MainWindow::cvMouseHandler( int evento, int x, int y, int flags,void *parametro ) {
@@ -107,4 +108,14 @@ void MainWindow::cvMouseHandler( int evento, int x, int y, int flags,void *param
         janela->roiSelecionado = true;
         janela->arrasto = false;
     }
+}
+//=========================================================
+bool MainWindow::pointOnImage( cv::Point point ) {
+    if( point.x > loadedImage.cols
+        || point.x < 0
+        || point.y > loadedImage.rows
+        || point.y < 0 ) {
+        return false;
+    }
+    return true;
 }
