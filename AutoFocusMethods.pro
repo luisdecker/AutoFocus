@@ -9,6 +9,7 @@ QT       += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 QMAKE_CXXFLAGS += -std=c++14
+QMAKE_CXXFLAGS += -Wno-unused-parameter
 TARGET = AutoFocusMethods
 TEMPLATE = app
 
@@ -36,7 +37,9 @@ SOURCES += main.cpp\
     clickhandler.cpp \
     squarewindow.cpp \
     autofocusmethods.cpp \
-    focusmetrics.cpp
+    focusmetrics.cpp \
+    hologramdecoder.cpp \
+    ComplexMatrix.cpp
 
 HEADERS  += mainwindow.h \
     clickablelabel.h \
@@ -45,7 +48,9 @@ HEADERS  += mainwindow.h \
     squarewindow.h \
     rectanglewatcher.h \
     autofocusmethods.h \
-    focusmetrics.h
+    focusmetrics.h \
+    hologramdecoder.h \
+    ComplexMatrix.h
 
 FORMS    += mainwindow.ui \
     squarewindow.ui

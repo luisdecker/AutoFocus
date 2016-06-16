@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <opencv.hpp>
 #include "rectanglewatcher.h"
+#include "focusmetrics.h"
+#include "autofocusmethods.h"
 
 namespace Ui {
     class MainWindow;
@@ -16,7 +18,7 @@ public:
     explicit MainWindow( QWidget *parent = 0 );
     void updateRect( cv::Rect newRect );
     ~MainWindow();
-    static void cvMouseHandler( int evento, int x, int y, int flags,void *parametro );
+    static void cvMouseHandler( int evento, int x, int y, int flags, void *parametro );
     cv::Point ponto1, ponto2;
     bool roiSelecionado = false;
     bool arrasto = false;
@@ -38,6 +40,7 @@ private slots:
     void loadImage();
 
     void on_selectAreaButton_clicked();
+    void on_decodeButton_clicked();
 };
 
 #endif // MAINWINDOW_H
