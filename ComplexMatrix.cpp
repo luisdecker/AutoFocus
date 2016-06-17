@@ -46,7 +46,7 @@ cv::Mat ComplexMatrix::compMat2cvMat( ComplexMatrix* entrada ) {
 }
 
 ComplexMatrix* ComplexMatrix::cvMat2compMat( cv::Mat base ) {
-    std::cout << "  mat2comp\n  channels: " << base.channels() << std::endl;
+    //  std::cout << "  mat2comp\n  channels: " << base.channels() << std::endl;
     assert( base.channels() == 2 );
     ComplexMatrix * novaMatrizComplex = new ComplexMatrix( base.rows, base.cols );
     std::complex<float>** matData = novaMatrizComplex->data;

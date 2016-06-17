@@ -1,14 +1,31 @@
 #include "hologramdecoder.h"
+//#define PRINT_FRESNELL
+#define debugging_enabled 0
+#define DEBUG(x) do { \
+        if (debugging_enabled) { std::cerr << x << std::endl; } \
+    } while (0)R
 
 HologramDecoder::HologramDecoder() {
 }
 
-cv::Mat HologramDecoder::decodeHologram( cv::Mat hologram, float dx, float dy, float z, float lambda ) {
+cv::Mat HologramDecoder::decodeHologram( cv::Mat hologram, float z, float lambda, float dx, float dy ) {
     return fresnel( hologram, dx, dy, lambda * z, lambda );
 }
 
 cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, float z, float lambda ) {
+
+#ifdef PRINT_FRESNELL
+    std::cout << "      **INFORMACOES FRESNEL**\n"
+              << "      dx: " << dx << std::endl
+              << "      dy: " << dy << std::endl
+              << "      z: " << z << std::endl
+              << "      lamda " << lambda << std::endl;
+#endif
+
     cv::Mat hologram;
+
+
+
     cv::cvtColor( hologramColor, hologram, CV_BGR2GRAY );
     hologram.convertTo( hologram, CV_32FC1, 1.0 / 255.0 );
     hologram = HologramDecoder::optimizeToFresnel( hologram );
@@ -89,9 +106,11 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
     cv::Mat result;
     cv::merge( mats, 2, result );
     cv::dft( shifted, result, cv::DFT_COMPLEX_OUTPUT );
-    zero = resultw;
+    zero = result;
     cv::Mat partialFinalResult;
-    if( z > criti ) {
+
+//   if( z > criti ) {
+    if( false ) {
         std::cout << " ENTROU NO IF" << std::endl;
         std::complex<float> ifPart1;
         ifPart1.imag( lambda * z );
@@ -100,20 +119,20 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
         cv::Mat ySquare = squareMatrix( y );
         sumMats = xSquare + ySquare;
 
-        std::cout << "  IF\n  sumMats.channels: " << sumMats.channels() << std::endl;
+        //	std::cout << "  IF\n  sumMats.channels: " << sumMats.channels() << std::endl;
 
         std::complex<float> ifPart2_1;
         ifPart2_1.imag( k / 2 * z );
 
-        std::cout << " IF[1]" << std::endl;
+        //	std::cout << " IF[1]" << std::endl;
 
         cv::Mat hpart2 = ComplexMatrix::mulComplexMat( sumMats, ifPart2_1 );
 
-        std::cout << "IF[2]" << std::endl;
+        //	std::cout << "IF[2]" << std::endl;
 
         cv::Mat expPart2 = ComplexMatrix::exp( hpart2 );
 
-        std::cout << "IF[3]" << std::endl;
+        //	std::cout << "IF[3]" << std::endl;
 
         cv::Mat h = ComplexMatrix::mulComplexMat( expPart2, ifPart1 );
         cv::Mat ifShifted = h.clone();
@@ -129,7 +148,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
         complexAux.imag( pow( complexAux.imag(), 2 ) );
         partialFinalResult = ComplexMatrix::mulComplexMat( transformed, complexAux );
     } else {
-        std::cout << " ENTROU NO ELSE" << std::endl;
+        //std::cout << " ENTROU NO ELSE" << std::endl;
         std::complex<float> part0else( 0, k * z );
         std::complex<float>part1else = std::exp<float> ( part0else );
         std::complex<float> part2else( 0, - ( M_PI * lambda * z ) );

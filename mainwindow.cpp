@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include "squarewindow.h"
 #include <cv.hpp>
+#include <iostream>
 
 //=========================================================
 MainWindow::MainWindow( QWidget *parent ) :
@@ -38,6 +39,7 @@ void MainWindow::updateDisplayImage( cv::Mat img ) {
 	loaded = true;
 	QSize size( img.cols, img.rows );
 	this->ui->image->resize( size );
+
 	QImage mat2Qim = cvMatToQImage( img );
 	QPixmap qim2Pix = QPixmap::fromImage( mat2Qim );
 	ui->image->setPixmap( qim2Pix );
@@ -126,5 +128,6 @@ void MainWindow::on_decodeButton_clicked() {
     FM::ImagePower* metric = new FM::ImagePower( 100 );
     AFM autofocus( this->loadedImage, this->ROI, metric );
     cv::Mat bestFocus = autofocus().clone();
+    std::cout << "Achou o foco [MAIN WINDOW]\n";
     updateDisplayImage( bestFocus );
 }
