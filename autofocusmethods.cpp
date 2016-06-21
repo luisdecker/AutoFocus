@@ -10,14 +10,14 @@ AFM::AFM( cv::Mat image, cv::Mat ROI, FM::FocusMetric *focusMetric ) {
     this->focusMetric = focusMetric;
 }
 
-void AFM::showHologram( cv::Mat image ) {
+void AFM::showHologram( cv::Mat image , int delay ) {
     cv::Mat splited[2];
     cv::split( image, splited );
     cv::Mat alce = splited[0].clone();
     cv::normalize( splited[0], alce, 0, 1, CV_MINMAX );
     HologramDecoder::fftshift( alce );
     cv::imshow( "Holgrama", alce );
-    cv::waitKey( 100 );
+    cv::waitKey( delay );
 }
 
 cv::Mat AFM::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
@@ -42,20 +42,43 @@ cv::Mat AFM::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
     cv::Mat originalImage = image.clone(), originalROI = ROI.clone();
     for( int i = this->minDecode; i < this->maxDecode; i = i + this->step ) {
         cv::Mat decoded = decodeTo( originalROI, i ).clone();
+        /*split the channels, and convert it to uchar*/
+        cv::Mat splitted[2];
+        cv::split( decoded, splitted );
+        cv::Mat real = splitted[0].clone();
+        cv::normalize( splitted[0], real, 0, 1, CV_MINMAX );
+        real.convertTo( real, CV_8U, 255 );
+
         std::cout << ".     Decodificando em " << i << "/" << maxDecode << std::endl;
         showHologram( decoded );
-        focusValues.insert( std::pair<int, double>( i, metric->measureFocus( decoded ) ) );
+        focusValues.insert( std::pair<int, double>( i, metric->measureFocus( real ) ) );
     }
-    double maior = -DBL_MAX;
+    double maior = 0;
+    std::pair<int, double> parMaior;
     for( std::pair<int, double> par : focusValues ) {
-        maior = ( ( par.second > maior ) ? par.second : maior );
+        if( par.second > maior ) {
+            maior = par.second;
+            parMaior = par;
+        }
+
     }
     double menor = DBL_MAX;
+    std::pair<int, double> parMenor;
     for( std::pair<int, double> par : focusValues ) {
-        menor = ( ( par.second < menor ) ? par.second : maior );
+        if( par.second < menor && par.second != 0 ) {
+            menor = par.second;
+            parMenor = par;
+        }
+
     }
-    DEBUG( "Achou ponto focal igual a " << menor );
-    return decodeTo( image, menor );
+    DEBUG( "Achou ponto focal igual a " << parMenor.first );
+    DEBUG( "Menor " << parMenor.first << " | " << menor );
+    DEBUG( "Maior " << parMaior.first << " | " << maior );
+
+    showHologram( decodeTo( image, parMaior.first ), 1000 );
+    showHologram( decodeTo( image, parMenor.first ), 1000 );
+
+    return decodeTo( image, parMenor.first );
 }
 
 cv::Mat AFM::decodeTo( cv::Mat image, int focalPoint ) {

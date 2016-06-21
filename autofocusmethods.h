@@ -16,12 +16,14 @@ public:
     cv::Mat operator()() {return findFocus();}
 
 private:
-    static void showHologram( cv::Mat image );
+
+    static void showHologram( cv::Mat image, int delay = 1);
+
     cv::Mat decodeTo( cv::Mat image, int focalPoint );
     cv::Mat image, ROI;
     FM::FocusMetric *focusMetric;
-    int minDecode = 0, maxDecode = 20000; //Minimal and maximal values to try to find the focus.
-    int step = 100; //Step between focus planes;
+    int minDecode = 0, maxDecode = 10000; //Minimal and maximal values to try to find the focus.
+    int step = 50; //Step between focus planes;
 
 };
 

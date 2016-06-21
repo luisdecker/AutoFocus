@@ -25,7 +25,7 @@ MainWindow::~MainWindow() {
 void MainWindow::loadImage() {
 	QString fileName;
 	fileName = QFileDialog::getOpenFileName( this, tr( "Selecione a imagem" ), ".",
-											 tr( "Image Files (*.png *.jpg *.bmp *.tiff )" ) );
+                                             tr( "Image Files (*.png *.jpg *.bmp *.tiff *.tif)" ) );
 	if( fileName.size() > 0 ) {
 		this->loadedImage = cv::imread( fileName.toStdString() ).clone();
 		updateDisplayImage( loadedImage );
@@ -66,6 +66,7 @@ bool MainWindow::loadedImageOk() {
 
 //=========================================================
 void MainWindow::on_selectAreaButton_clicked() {
+    this->setHidden( 1 );
 	cv::Mat imagem;
 	cv::namedWindow( "Selecione a regiao de interesse!", CV_WINDOW_AUTOSIZE ); //Cria a janela de seleção de ROI - OCV pq peidei na farofa com o qt
 	assert( loadedImageOk() );
@@ -85,20 +86,21 @@ void MainWindow::on_selectAreaButton_clicked() {
 	updateDisplayImage( imagem );
 	ui->decodeButton->setEnabled( true );
 	cv::destroyAllWindows();
+    this->setHidden( 0 );
 }
 //=========================================================
 void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void *parametro ) {
 	MainWindow *janela = static_cast<MainWindow *>( parametro );
 	/*pressiona o botao esquerdo*/
 	if( evento == CV_EVENT_LBUTTONDOWN && !janela->arrasto ) {
-		std::cout << "Detectou clique" << std::endl;
+        //	std::cout << "Detectou clique" << std::endl;
 		janela->ponto1 = cv::Point( x, y );
 		janela->arrasto = true;
 		janela->roiSelecionado = false;
 	}
 	/*arrasta o mouse, ROI sendo selecionado*/
 	if( evento == CV_EVENT_MOUSEMOVE && janela->arrasto ) {
-		std::cout << "Detectou arrasto" << std::endl;
+        //std::cout << "Detectou arrasto" << std::endl;
 		janela->ponto2 = cv::Point( x, y );
 		cv::Rect regiaoSelecionada( janela->ponto1, janela->ponto2 );
 		janela->rect = regiaoSelecionada;
@@ -108,7 +110,7 @@ void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void *para
 	}
 	/*Soltou o mouse*/
 	if( evento == CV_EVENT_LBUTTONUP ) {
-		std::cout << "Detectou clique solto" << std::endl;
+        //  std::cout << "Detectou clique solto" << std::endl;
 		janela->roiSelecionado = true;
 		janela->arrasto = false;
 	}
@@ -118,16 +120,18 @@ bool MainWindow::pointOnImage( cv::Point point ) {
 	if( point.x > loadedImage.cols
 		|| point.x < 0
 		|| point.y > loadedImage.rows
-		|| point.y < 0 ) {
+        || point.y < 0 ) {
 		return false;
 	}
 	return true;
 }
 //=========================================================
 void MainWindow::on_decodeButton_clicked() {
-    FM::ImagePower* metric = new FM::ImagePower( 100 );
+
+    FM::ImagePower* metric = new FM::ImagePower( 50 );
     AFM autofocus( this->loadedImage, this->ROI, metric );
     cv::Mat bestFocus = autofocus().clone();
     std::cout << "Achou o foco [MAIN WINDOW]\n";
     updateDisplayImage( bestFocus );
+
 }

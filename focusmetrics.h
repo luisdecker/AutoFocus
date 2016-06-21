@@ -6,7 +6,7 @@ namespace FM {
     class FocusMetric {
     public:
         FocusMetric() {};
-        virtual double measureFocus( cv::Mat ) const {return 0.;}
+        virtual double measureFocus( cv::Mat ) const {return 1.;}
         bool checkImage( cv::Mat image ) const;
     };
     /*****************************************************
@@ -15,7 +15,7 @@ namespace FM {
     *****************************************************/
     class ImagePower : public FocusMetric {
     public:
-        ImagePower( int threshold ):threshold( ( uchar )threshold ) {}
+        ImagePower( int threshold ): threshold( ( uchar )threshold ) {}
         double measureFocus( cv::Mat image ) const;
     private:
         uchar threshold;
