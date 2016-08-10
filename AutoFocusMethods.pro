@@ -32,6 +32,11 @@ LIBS += -lopencv_flann
 LIBS += -lopencv_nonfree
 #=======================================
 
+#Includes OpenMP========================
+QMAKE_CXXFLAGS+= -fopenmp
+QMAKE_LFLAGS +=  -fopenmp
+#=======================================
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     clickhandler.cpp \
@@ -39,7 +44,8 @@ SOURCES += main.cpp\
     autofocusmethods.cpp \
     focusmetrics.cpp \
     hologramdecoder.cpp \
-    ComplexMatrix.cpp
+    ComplexMatrix.cpp \
+    imagehistogram.cpp
 
 HEADERS  += mainwindow.h \
     clickablelabel.h \
@@ -50,7 +56,8 @@ HEADERS  += mainwindow.h \
     autofocusmethods.h \
     focusmetrics.h \
     hologramdecoder.h \
-    ComplexMatrix.h
+    ComplexMatrix.h \
+    imagehistogram.h
 
 FORMS    += mainwindow.ui \
     squarewindow.ui

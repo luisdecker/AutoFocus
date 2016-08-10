@@ -7,6 +7,8 @@
 #include <cv.hpp>
 #include <iostream>
 
+using AFM::Classic;
+
 //=========================================================
 MainWindow::MainWindow( QWidget *parent ) :
 	QMainWindow( parent ),
@@ -129,7 +131,7 @@ bool MainWindow::pointOnImage( cv::Point point ) {
 void MainWindow::on_decodeButton_clicked() {
 
     FM::ImagePower* metric = new FM::ImagePower( 50 );
-    AFM autofocus( this->loadedImage, this->ROI, metric );
+    Classic autofocus( this->loadedImage, this->ROI, metric );
     cv::Mat bestFocus = autofocus().clone();
     std::cout << "Achou o foco [MAIN WINDOW]\n";
     updateDisplayImage( bestFocus );

@@ -1,8 +1,5 @@
-#include <complex>
-#include <assert.h>
-#include <opencv2/core/core.hpp>
+
 #include "ComplexMatrix.h"
-#include <iostream>
 
 std::complex<float> ComplexMatrix::at( int linha, int coluna ) {
     return this->data[linha][coluna];

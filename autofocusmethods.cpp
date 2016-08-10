@@ -3,24 +3,35 @@
 #define DEBUG(x) do { \
         if (debugging_enabled) { std::cerr << x << std::endl; } \
     } while (0)
+using AFM::Classic;
 
-AFM::AFM( cv::Mat image, cv::Mat ROI, FM::FocusMetric *focusMetric ) {
+Classic::Classic( cv::Mat image, cv::Mat ROI, FM::FocusMetric *focusMetric ) {
     this->image = image;
     this->ROI = ROI;
     this->focusMetric = focusMetric;
 }
 
-void AFM::showHologram( cv::Mat image , int delay ) {
+cv::Mat Classic::splitHologram( cv::Mat image ) {
     cv::Mat splited[2];
     cv::split( image, splited );
     cv::Mat alce = splited[0].clone();
     cv::normalize( splited[0], alce, 0, 1, CV_MINMAX );
     HologramDecoder::fftshift( alce );
-    cv::imshow( "Holgrama", alce );
+    alce.convertTo( alce, CV_8U, 255 );
+    return alce.clone();
+}
+
+void Classic::showHologram( cv::Mat image , int delay ) {
+    cv::Mat splited[2];
+    cv::split( image, splited );
+    cv::Mat alce = splited[0].clone();
+    cv::normalize( splited[0], alce, 0, 1, CV_MINMAX );
+    HologramDecoder::fftshift( alce );
+    cv::imshow( "Holograma", alce );
     cv::waitKey( delay );
 }
 
-cv::Mat AFM::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
+cv::Mat Classic::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
     std::map<int, double> focusValues; // map with key = focus plane, value = focus Value
     if( metric == nullptr ) {
         metric = focusMetric;//Use standart metric
@@ -75,13 +86,15 @@ cv::Mat AFM::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
     DEBUG( "Menor " << parMenor.first << " | " << menor );
     DEBUG( "Maior " << parMaior.first << " | " << maior );
 
-    showHologram( decodeTo( image, parMaior.first ), 1000 );
+    //  showHologram( decodeTo( image, parMaior.first ), 1000 );
     showHologram( decodeTo( image, parMenor.first ), 1000 );
+    cv::imwrite( "decoded.bmp", splitHologram( decodeTo( ROI, parMenor.first ) ) );
+    cv::imwrite( "coded.bmp", ROI );
 
-    return decodeTo( image, parMenor.first );
+    return splitHologram(decodeTo( image, parMenor.first ));
 }
 
-cv::Mat AFM::decodeTo( cv::Mat image, int focalPoint ) {
+cv::Mat Classic::decodeTo( cv::Mat image, int focalPoint ) {
     return HologramDecoder::decodeHologram( image, focalPoint );
 }
 
