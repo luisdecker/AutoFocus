@@ -1,11 +1,20 @@
 #ifndef IMAGEHISTOGRAM_H
 #define IMAGEHISTOGRAM_H
 
+#include <opencv2/opencv.hpp>
 
-class ImageHistogram
-{
+class ImageHistogram {
 public:
-    ImageHistogram();
+    ImageHistogram( int bins, cv::Mat image );
+    int pixelsInBin( int bin );
+    bool pixelsAboveThreshold( int bin, int threshold );
+    ~ImageHistogram();
+private:
+
+    int	bins;
+    int * hist;
+    bool checkImage( cv::Mat image ) const;
+    void createHistogram( cv::Mat image );
 };
 
 #endif // IMAGEHISTOGRAM_H

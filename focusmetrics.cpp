@@ -102,5 +102,9 @@ double FM::LaplacianEnergy::measureFocus( cv::Mat image ) const {
     cv::pow( processed, 2, processed );
     return cv::sum( processed )[0];
 }
+//-----------------------------------------------
+
+
+
 
 
