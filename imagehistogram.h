@@ -7,7 +7,7 @@ class ImageHistogram {
 public:
     ImageHistogram( int bins, cv::Mat image );
     int pixelsInBin( int bin );
-    bool pixelsAboveThreshold( int bin, int threshold );
+    bool pixelsAboveThreshold( int bin, int threshold );//Bins começam a ser contadas a partir de 1.
     ~ImageHistogram();
 private:
 

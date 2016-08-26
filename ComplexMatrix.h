@@ -51,6 +51,9 @@ public:
 
     /*Multiplica elemento a elemento as duas matrizes*/
     static cv::Mat perElementMult( cv::Mat esquerda, cv::Mat direita );
+
+    /*Destrutor da estrutura*/
+    ~ComplexMatrix();
 private:
 
     /*Numero de linhas da matriz*/

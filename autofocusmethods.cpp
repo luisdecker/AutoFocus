@@ -5,7 +5,7 @@
     } while (0)
 using AFM::Classic;
 
-Classic::Classic( cv::Mat image, cv::Mat ROI, FM::FocusMetric *focusMetric ) {
+Classic::Classic( cv::Mat image, cv::Mat ROI, FM::FocusMetric * focusMetric ) {
     this->image = image;
     this->ROI = ROI;
     this->focusMetric = focusMetric;
@@ -31,7 +31,7 @@ void Classic::showHologram( cv::Mat image , int delay ) {
     cv::waitKey( delay );
 }
 
-cv::Mat Classic::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric ) {
+cv::Mat Classic::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
     std::map<int, double> focusValues; // map with key = focus plane, value = focus Value
     if( metric == nullptr ) {
         metric = focusMetric;//Use standart metric
@@ -91,7 +91,7 @@ cv::Mat Classic::findFocus( cv::Mat image, cv::Mat ROI, FM::FocusMetric *metric 
     cv::imwrite( "decoded.bmp", splitHologram( decodeTo( ROI, parMenor.first ) ) );
     cv::imwrite( "coded.bmp", ROI );
 
-    return splitHologram(decodeTo( image, parMenor.first ));
+    return splitHologram( decodeTo( image, parMenor.first ) );
 }
 
 cv::Mat Classic::decodeTo( cv::Mat image, int focalPoint ) {

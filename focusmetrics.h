@@ -1,6 +1,7 @@
 #ifndef FOCUSMETRICS_H
 #define FOCUSMETRICS_H
 #include <cv.hpp>
+#include "imagehistogram.h"
 
 namespace FM {
 
@@ -31,7 +32,7 @@ namespace FM {
     *****************************************************/
     class ThreshGradient : public FocusMetric {
     public:
-
+        ThreshGradient( int threshold ) : threshold( ( uchar )threshold ) {}
         double measureFocus( cv::Mat image ) const;
     private:
         uchar threshold;
@@ -44,6 +45,7 @@ namespace FM {
     *****************************************************/
     class BrennerGradient : public FocusMetric {
     public:
+        BrennerGradient( uchar threshold ): threshold( threshold ) {}
         double measureFocus( cv::Mat image ) const;
     private:
         uchar threshold;
@@ -62,11 +64,23 @@ namespace FM {
     and horizontal axes by convolving it with the following Laplacian mask:
     *****************************************************/
     class LaplacianEnergy : public FocusMetric {
+    public:
         double measureFocus( cv::Mat image ) const;
     private://No threshold here!
     };
 
-
+    /*****************************************************
+    This function considers only the histogram bins which contain at least the average number of pixels per bin,
+    and then outputs the range between the gray levels of the first and the last qualified histogram bins.
+    *****************************************************/
+    class ThresholdedHistogram: public FocusMetric {
+    public:
+        ThresholdedHistogram( uchar threshold, uchar bins ): threshold( threshold ), bins( ( int )bins ) {}
+        double measureFocus( cv::Mat ) const;
+    private:
+        uchar threshold;
+        int bins;
+    };
 
 }
 

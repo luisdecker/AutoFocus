@@ -157,6 +157,9 @@ cv::Mat ComplexMatrix::perElementMult( cv::Mat esquerda, cv::Mat direita ) {
 
 }
 
+ComplexMatrix::~ComplexMatrix(){
+
+}
 
 
 

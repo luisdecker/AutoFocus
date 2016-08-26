@@ -10,7 +10,7 @@
 using AFM::Classic;
 
 //=========================================================
-MainWindow::MainWindow( QWidget *parent ) :
+MainWindow::MainWindow( QWidget * parent ) :
 	QMainWindow( parent ),
 	ui( new Ui::MainWindow ) {
 	ui->setupUi( this );
@@ -42,7 +42,8 @@ void MainWindow::updateDisplayImage( cv::Mat img ) {
 	QSize size( img.cols, img.rows );
 	this->ui->image->resize( size );
 
-	QImage mat2Qim = cvMatToQImage( img );
+
+    QImage mat2Qim = cvMatToQImage( img );
 	QPixmap qim2Pix = QPixmap::fromImage( mat2Qim );
 	ui->image->setPixmap( qim2Pix );
 }
@@ -91,8 +92,8 @@ void MainWindow::on_selectAreaButton_clicked() {
     this->setHidden( 0 );
 }
 //=========================================================
-void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void *parametro ) {
-	MainWindow *janela = static_cast<MainWindow *>( parametro );
+void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void * parametro ) {
+    MainWindow * janela = static_cast<MainWindow *>( parametro );
 	/*pressiona o botao esquerdo*/
 	if( evento == CV_EVENT_LBUTTONDOWN && !janela->arrasto ) {
         //	std::cout << "Detectou clique" << std::endl;
@@ -130,7 +131,7 @@ bool MainWindow::pointOnImage( cv::Point point ) {
 //=========================================================
 void MainWindow::on_decodeButton_clicked() {
 
-    FM::ImagePower* metric = new FM::ImagePower( 50 );
+    FM::FocusMetric * metric = new FM::BrennerGradient( 50 );
     Classic autofocus( this->loadedImage, this->ROI, metric );
     cv::Mat bestFocus = autofocus().clone();
     std::cout << "Achou o foco [MAIN WINDOW]\n";

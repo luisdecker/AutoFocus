@@ -29,8 +29,20 @@ inline QImage cvMatToQImage( cv::Mat image ) {
         imageReal.convertTo( imageReal, CV_8UC3 );
         cv::cvtColor( imageReal, image, CV_GRAY2BGR );
     }
-    cv::cvtColor( image, alce, CV_BGR2RGB );
+    if( image.channels() == 1 ) {
+        std::cout << "É um canal!" << std::endl;
 
+        image.convertTo( image, CV_8UC3 );
+        cv::Mat newImage;
+        cv::cvtColor( image, newImage, CV_GRAY2BGR );
+        image = newImage;
+
+    }
+
+    if( !( image.channels() == 1 ) ) {
+        std::cout << "Não é um canal!" << std::endl;
+        cv::cvtColor( image, alce, CV_BGR2RGB );
+    }
     QImage result( ( const uchar * ) alce.data, alce.cols, alce.rows, alce.step, QImage::Format_RGB888 );
     result.bits(); //força cópia
     return result;
