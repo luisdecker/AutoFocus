@@ -204,10 +204,6 @@ void MainWindow::on_decodeButton_clicked() {
             cv::Mat roi50 = generate50ROI();
             AFM::Comparative comparative50( roi50, 100 );
 
-
-
-
-
         }
 
 

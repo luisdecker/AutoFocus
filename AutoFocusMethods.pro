@@ -10,6 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 QMAKE_CXXFLAGS += -std=c++14
 QMAKE_CXXFLAGS += -Wno-unused-parameter
+
+QMAKE_CXXFLAGS += -fopenmp
 TARGET = AutoFocusMethods
 TEMPLATE = app
 
@@ -26,10 +28,11 @@ LIBS += -lopencv_video
 LIBS += -lopencv_features2d
 LIBS += -lopencv_calib3d
 LIBS += -lopencv_objdetect
-LIBS += -lopencv_contrib
-LIBS += -lopencv_legacy
 LIBS += -lopencv_flann
-LIBS += -lopencv_nonfree
+LIBS += -lopencv_imgcodecs
+#LIBS += -lopencv_nonfree
+#LIBS += -lopencv_contrib
+#LIBS += -lopencv_legacy
 #=======================================
 
 #Includes OpenMP========================
@@ -45,7 +48,8 @@ SOURCES += main.cpp\
     focusmetrics.cpp \
     hologramdecoder.cpp \
     ComplexMatrix.cpp \
-    imagehistogram.cpp
+    imagehistogram.cpp \
+    comparative.cpp
 
 HEADERS  += mainwindow.h \
     clickablelabel.h \

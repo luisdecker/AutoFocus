@@ -18,7 +18,7 @@ SquareWindow::SquareWindow( QWidget *parent,cv::Mat img , RectangleWatcher *pare
 }
 
 cv::Mat drawSquare( cv::Mat img, QPoint point1, QPoint point2 ) {
-    if( !img.data == NULL ) {
+    if( !(img.data == nullptr) ) {
         std::cout << "Entrou no drowSquare" << std::endl;
         cv::Mat original = img.clone();
 //        cv::imshow("Dentro Square",original);

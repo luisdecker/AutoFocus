@@ -7,7 +7,7 @@
 class HologramDecoder {
 public:
     HologramDecoder();
-   static  cv::Mat decodeHologram( cv::Mat hologram,float z, float lambda=385e-9,float dx = 1.67e-6 ,  float dy = 1.67e-6 );
+   static  cv::Mat decode_hologram( cv::Mat hologram,float z, float lambda=385e-9,float dx = 1.67e-6 ,  float dy = 1.67e-6 );
    static cv::Mat fftshift ( cv::Mat input );
 
 private:

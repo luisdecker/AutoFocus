@@ -7,21 +7,11 @@ namespace FM {
 
     class FocusMetric {
     public:
-        FocusMetric() {};
-        virtual double measureFocus( cv::Mat ) const {return 1.;}
-        bool checkImage( cv::Mat image ) const;
-    };
-    /*****************************************************
-    *Image Power:
-    The intensity at each pixel is squared and summed if the pixel is above a given threshold
-    *****************************************************/
-    class ImagePower : public FocusMetric {
-    public:
-        ImagePower( int threshold ): threshold( ( uchar )threshold ) {}
-        double measureFocus( cv::Mat image ) const;
-    private:
-        uchar threshold;
-
+        FocusMetric() {}
+        virtual double measure_focus( cv::Mat ) const {return -1.;}
+        bool check_image( cv::Mat image ) const;
+        enum minMax {MAXIMIZATION, MINIMIZATION};
+        minMax minMaxType;
     };
 
 
@@ -32,8 +22,10 @@ namespace FM {
     *****************************************************/
     class ThreshGradient : public FocusMetric {
     public:
-        ThreshGradient( int threshold ) : threshold( ( uchar )threshold ) {}
-        double measureFocus( cv::Mat image ) const;
+        ThreshGradient( int threshold ) : threshold( ( uchar )threshold ) {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat image ) const;
     private:
         uchar threshold;
     };
@@ -45,8 +37,10 @@ namespace FM {
     *****************************************************/
     class BrennerGradient : public FocusMetric {
     public:
-        BrennerGradient( uchar threshold ): threshold( threshold ) {}
-        double measureFocus( cv::Mat image ) const;
+        BrennerGradient( uchar threshold ): threshold( threshold ) {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat image ) const;
     private:
         uchar threshold;
     };
@@ -56,7 +50,10 @@ namespace FM {
     *****************************************************/
     class TenenbaumGradient : public FocusMetric {
     public:
-        double measureFocus( cv::Mat image ) const;
+        TenenbaumGradient() {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat image ) const;
     private://No threshold here!
     };
     /*****************************************************
@@ -65,7 +62,11 @@ namespace FM {
     *****************************************************/
     class LaplacianEnergy : public FocusMetric {
     public:
-        double measureFocus( cv::Mat image ) const;
+        LaplacianEnergy() {
+            this->minMaxType = MINIMIZATION;
+        }
+
+        double measure_focus( cv::Mat image ) const;
     private://No threshold here!
     };
 
@@ -75,13 +76,87 @@ namespace FM {
     *****************************************************/
     class ThresholdedHistogram: public FocusMetric {
     public:
-        ThresholdedHistogram( uchar threshold, uchar bins ): threshold( threshold ), bins( ( int )bins ) {}
-        double measureFocus( cv::Mat ) const;
+        ThresholdedHistogram( uchar threshold, uchar bins = 64 ): threshold( threshold ), bins( ( int )bins ) {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat ) const;
     private:
         uchar threshold;
         int bins;
     };
 
+
+    /*****************************************************
+    This metric computes the variance among the image with respect to the mean intensity value μ. After summing
+    the variance values over the image, the final scalar value is further divided by μ to compensate abnormally
+    high values in the data.
+    *****************************************************/
+    class NormalizedVariance : public FocusMetric {
+    public :
+        NormalizedVariance() {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat ) const;
+    private://No threshold here!
+    };
+
+    /*****************************************************
+    This function computes the correlation of neighboring pixels
+    *****************************************************/
+    class AutoCorrelation : public FocusMetric {
+    public:
+        AutoCorrelation() {
+            this->minMaxType = MAXIMIZATION;
+        }
+        double measure_focus( cv::Mat ) const;
+    private://No threshold here!
+    };
+
+    /*****************************************************
+    In this function, correlation of adjacent pixels are computed with respect to a constant intensity image that has
+    gray-level value of μ at all pixels.
+    *****************************************************/
+    class StandartDeviationCorrelation : public FocusMetric {
+
+    public:
+        StandartDeviationCorrelation() {
+            this->minMaxType = MAXIMIZATION;
+        }
+        double measure_focus( cv::Mat ) const;
+    private://No threshold here!
+
+
+    };
+
+    /*****************************************************
+    *Image Power:
+    The intensity at each pixel is squared and summed if the pixel is above a given threshold
+    *****************************************************/
+    class ImagePower : public FocusMetric {
+    public:
+        ImagePower( int threshold ): threshold( ( uchar )threshold ) {
+            this->minMaxType = MAXIMIZATION;
+        }
+        double measure_focus( cv::Mat image ) const;
+    private:
+        uchar threshold;
+
+    };
+
+    /*****************************************************
+    Thresholded-pixel count
+    In this metric, the number of pixels which has lesser intensity than a given threshold is counted as the quality
+    measure.
+    *****************************************************/
+    class PixelCount : public FocusMetric {
+    public:
+        PixelCount( uchar threshold ): threshold( threshold ) {
+            this->minMaxType = MINIMIZATION;
+        }
+        double measure_focus( cv::Mat ) const;
+    private:
+        uchar threshold = 255;
+    };
 }
 
 

@@ -3,12 +3,12 @@
 #define debugging_enabled 0
 #define DEBUG(x) do { \
         if (debugging_enabled) { std::cerr << x << std::endl; } \
-    } while (0)R
+    } while (0)
 
 HologramDecoder::HologramDecoder() {
 }
 
-cv::Mat HologramDecoder::decodeHologram( cv::Mat hologram, float z, float lambda, float dx, float dy ) {
+cv::Mat HologramDecoder::decode_hologram( cv::Mat hologram, float z, float lambda, float dx, float dy ) {
     return fresnel( hologram, dx, dy, lambda * z, lambda );
 }
 

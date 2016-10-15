@@ -15,7 +15,7 @@ void ImageHistogram::createHistogram( cv::Mat image ) {
     for( int x = 0; x < image.rows; x++ ) {
         for( int y = 0; y < image.cols; y++ ) {
             int pixel = ( int )image.at<uchar>( x, y );
-            int destinyBin = pixel % valuesPerBin;
+            int destinyBin = ( int ) pixel / ( int )valuesPerBin;
             histogram[destinyBin]++;
         }
     }
@@ -25,7 +25,7 @@ void ImageHistogram::createHistogram( cv::Mat image ) {
 int ImageHistogram::pixelsInBin( int bin ) {
     assert( bin <= bins &&
             bin > 0 );
-    return hist[bin];
+    return hist[bin - 1];
 }
 
 //-----------------------------------------------
@@ -35,7 +35,7 @@ bool ImageHistogram::pixelsAboveThreshold( int bin, int threshold ) {
     assert( threshold >= 0 );
     assert( threshold < 256 );
 
-    return hist[bin] >= threshold;
+    return hist[bin - 1] >= threshold;
 
 
 
