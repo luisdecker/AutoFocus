@@ -43,7 +43,6 @@ QMAKE_LFLAGS +=  -fopenmp
 SOURCES += main.cpp\
         mainwindow.cpp \
     clickhandler.cpp \
-    squarewindow.cpp \
     autofocusmethods.cpp \
     focusmetrics.cpp \
     hologramdecoder.cpp \
@@ -55,7 +54,6 @@ HEADERS  += mainwindow.h \
     clickablelabel.h \
     clickhandler.h \
     imageconverter.h \
-    squarewindow.h \
     rectanglewatcher.h \
     autofocusmethods.h \
     focusmetrics.h \
@@ -63,5 +61,4 @@ HEADERS  += mainwindow.h \
     ComplexMatrix.h \
     imagehistogram.h
 
-FORMS    += mainwindow.ui \
-    squarewindow.ui
+FORMS    += mainwindow.ui

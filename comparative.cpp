@@ -67,6 +67,8 @@ AFM::Comparative::Comparative( cv::Mat image, int threshold, int minDecode, int 
 
 	//Update the image to analise
 	this->image = image;
+    cv::imshow ("Comparative Constructor", image);
+    cv::waitKey(2000);
 	//
 
 }//Comparative constructor
@@ -94,8 +96,10 @@ AFM::Comparative::create_measure_table() {
 }//Create Measures Table
 //_______________________________________________
 std::string
-AFM::Comparative::operator()() {
-    return  generate_csv();
+AFM::Comparative::operator()( bool focusPlane ) {
+    return  !focusPlane ?
+            generate_csv() :
+            create_points_table();
 }
 
 //_______________________________________________
@@ -124,7 +128,7 @@ AFM::Comparative::decode_to( cv::Mat input, int plane , bool complexChannel ) {
     channel.convertTo( channel, CV_8U, 255 );
     HologramDecoder::fftshift( channel );
 
-    cv::imshow( "", channel );
+    cv::imshow( "Comparative decode_to", channel );
     cv::waitKey( 1 );
     return channel;
 }
@@ -141,11 +145,7 @@ AFM::Comparative::generate_csv( ) {
 	}
 	std::string header( ss.str() );
     ss.str( "" );
-	std::string methodsNames[] = {"Treshold Gradient-Squared", "Thresholded Brenner Gradient" ,
-								  "Tenenbaum Gradient", "Energy of Laplacian", "Thresholded Histogram Range",
-								  "Normalized Variance", "Auto Corretalion", "Standard deviation based correlation" ,
-								  "Image Power" , "Thresholded pixel-count"
-								 };
+
 
 	int currentMethodIndex = 0;
 	MetricsTable results = create_measure_table();
@@ -187,21 +187,72 @@ void
 AFM::Comparative::calculateMinMax() {
     double minValue = DBL_MAX;
     double maxValue = DBL_MIN;
+    if( !haveMinMax ) {
+        for( int z = minDecode; z <= maxDecode; z += step ) {
+            cv::Mat decodedImage = HologramDecoder::decode_hologram( image, z ); //Decode the image
+            cv::Mat splitted[2];
+            cv::split( decodedImage, splitted );//Split the two channels of the image (real and complex)
+            cv::Mat real = splitted[0].clone();//Copy the image
+            double minLocal, maxLocal;//The local extremas
+            cv::minMaxLoc( real, &minLocal, &maxLocal );//Get the extremas from the reconstructed hologram
+            if( minLocal < minValue ) minValue = minLocal; //Update the global minimum
+            if( maxLocal > maxValue ) maxValue = maxLocal; //Update the global maximum
+        }//For each analised reconstruction plane
+        this->minVal = minValue;
+        this->maxVal = maxValue;
+        std::cout << "Min = " << minVal << "\nMax = " << maxVal << std::endl;
 
-    for( int z = minDecode; z <= maxDecode; z += step ) {
-        cv::Mat decodedImage = HologramDecoder::decode_hologram( image, z ); //Decode the image
-        cv::Mat splitted[2];
-        cv::split( decodedImage, splitted );//Split the two channels of the image (real and complex)
-        cv::Mat real = splitted[0].clone();//Copy the image
-        double minLocal, maxLocal;//The local extremas
-        cv::minMaxLoc( real, &minLocal, &maxLocal );//Get the extremas from the reconstructed hologram
-        if( minLocal < minValue ) minValue = minLocal; //Update the global minimum
-        if( maxLocal > maxValue ) maxValue = maxLocal; //Update the global maximum
-    }//For each analised reconstruction plane
-    this->minVal = minValue;
-    this->maxVal = maxValue;
-    std::cout << "Min = " << minVal << "\nMax = " << maxVal << std::endl;
+        this->haveMinMax = true;
+    }
+}
+//_______________________________________________
+std::string
+AFM::Comparative::create_points_table() {
 
-    this->haveMinMax = true;
+    std::stringstream ss;
+    int metricNameIndex = 0;
+    ss << ";Focus Plane\n" ;
+    for( FocusMetric * metric : metrics ) {
+        double measuredFocus = get_focal_plane( *metric );
+        ss << methodsNames[metricNameIndex] << ";";
+        ss << measuredFocus << "\n";
+        metricNameIndex++;
+    }
+    return ss.str();
 
 }
+
+//_______________________________________________
+double
+AFM::Comparative::get_focal_plane( FocusMetric metric ) {
+    cv::imshow("get_focal_plane",image);
+    cv::waitKey(1000);
+    return AFM::Classic( image, image, &metric ).find_focus();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -85,6 +85,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
     part2u = cv::Mat( part2x.rows, part2x.cols, CV_32F, aux );
     cv::Mat u = part1u * part2u * dfx; //U pronto
     //
+    delete aux;
     aux = new float[hologram.rows];
     index = 0;
     for( int i = ( -1 * ( hologram.rows ) / 2 ); i < ( hologram.rows ) / 2; i++ ) {
@@ -92,6 +93,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
         index++;
     }
     cv::Mat part1v = cv::Mat( 1, hologram.rows, CV_32FC1, aux );
+    delete aux;
     cv::Mat part2v = cv::Mat::ones( 1, hologram.cols, CV_32F );
     cv::Mat part1vtanspost = cv::Mat( part1y.rows, part1y.cols, part1v.type() );
     cv::transpose( part1v, part1vtanspost );

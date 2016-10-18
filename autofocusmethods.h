@@ -16,6 +16,10 @@ namespace AFM {
         image = image / maxVal;
         return image;
     }
+    /****************************************
+     * CLASSIC
+     * *************************************/
+
 
 	/*Classic autofocus method (photographic camera method)*/
 	class Classic {
@@ -70,6 +74,10 @@ namespace AFM {
 
 	};
 
+    /****************************************
+     * COMPARATIVE
+     * *************************************/
+
 	/* Test all the implemented focus methods.*/
 	class Comparative {
 		/*
@@ -91,7 +99,10 @@ namespace AFM {
 					 int maxDecode = 15000,
                      int step = 200 );
 
-        std::string operator()();
+        //Operator (), returns a comparative table with the detected focus planes, or with the measures
+        //at each plane.
+        std::string
+        operator()(bool focusPlane);
 
 		//A table with all the measured metrics
 		typedef std::vector < std::vector  <double > >
@@ -125,6 +136,14 @@ namespace AFM {
         void
         calculateMinMax();
 
+        //Generate a string with the measured focus from ever method
+        std::string
+        create_points_table();
+
+        //Gets the focal plane detected by given metric
+        double
+        get_focal_plane(FM::FocusMetric metric);
+
 		//___________________________________________________________
 		//All the focus metrics used to comparison.
 		std::vector<FM::FocusMetric *>
@@ -153,7 +172,14 @@ namespace AFM {
         bool
         haveMinMax;
 
-	};
+        //Ordered name of the metrics
+        const std::string
+        methodsNames[10] = {"Treshold Gradient-Squared", "Thresholded Brenner Gradient" ,
+                                      "Tenenbaum Gradient", "Energy of Laplacian", "Thresholded Histogram Range",
+                                      "Normalized Variance", "Auto Corretalion", "Standard deviation based correlation" ,
+                                      "Image Power" , "Thresholded pixel-count"
+                                     };
+        };
 
 }
 #endif // AUTOFOCUSMETHODS_H

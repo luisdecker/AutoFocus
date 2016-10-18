@@ -41,6 +41,7 @@ std::pair<double, double> Classic::findMinMax( cv::Mat image ) {
     double maxValue = DBL_MIN;
 
     for( int z = minDecode; z <= maxDecode; z += step ) {
+        std::cout << "->Achando mínimo/maximo para " << z << std::endl;
         cv::Mat decodedImage = decode_to( image, z ); //Decode the image
         cv::Mat splitted[2];
         cv::split( decodedImage, splitted );//Split the two channels of the image (real and complex)
@@ -97,7 +98,7 @@ Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
         //show_hologram( real, 100 );
         HologramDecoder::fftshift( real );
         cv::imshow( "Measured", real );
-        cv::waitKey();
+        cv::waitKey(1);
         if( i == 4000 ) {
             cv::imwrite( "CODIFICADA.png", real );
         }

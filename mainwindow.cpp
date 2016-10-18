@@ -3,7 +3,7 @@
 #include "imageconverter.h"
 #include <iostream>
 #include <QFileDialog>
-#include "squarewindow.h"
+
 #include <cv.hpp>
 #include <iostream>
 
@@ -68,8 +68,9 @@ bool MainWindow::loadedImageOk() {
 }
 //_________________________________________________________
 cv::Point2d MainWindow::getROICenter( cv::Rect rectangle ) {
-    int x = rectangle.tl().x / 2;
-    int y = rectangle.br().y / 2;
+    int x = rectangle.br().x - rectangle.width / 2;
+    int y = rectangle.br().y - rectangle.height / 2;
+    std::cout << "Centro do ROI em [" << x << " . " << y << " ]" << std::endl;
     return cv::Point2d( x, y );
 
 }
@@ -85,10 +86,10 @@ cv::Mat MainWindow::generate50ROI() {
     xmin = ROICenter.x - 25;
     ymin = ROICenter.y - 25;
 
-    cv::Point br( xmin, ymax );
-    cv::Point tl( xmax, ymin );
+    cv::Point br( xmin, ymin );
+    cv::Point tl( xmax, ymax );
 
-    return cv::Mat( this->loadedImage, cv::Rect( br, tl ) );
+    return cv::Mat( this->loadedImage, cv::Rect( br, cv::Size( 50, 50 ) ) );
 }
 //_________________________________________________________
 cv::Mat MainWindow::generate100ROI() {
@@ -101,10 +102,10 @@ cv::Mat MainWindow::generate100ROI() {
     xmin = ROICenter.x - 50;
     ymin = ROICenter.y - 50;
 
-    cv::Point br( xmin, ymax );
-    cv::Point tl( xmax, ymin );
+    cv::Point br( xmin, ymin );
+    cv::Point tl( xmax, ymax );
 
-    return cv::Mat( this->loadedImage, cv::Rect( br, tl ) );
+    return cv::Mat( this->loadedImage, cv::Rect( br, cv::Size( 100, 100 ) ) );
 }
 //_________________________________________________________
 cv::Mat MainWindow::generate200ROI() {
@@ -117,10 +118,13 @@ cv::Mat MainWindow::generate200ROI() {
     xmin = ROICenter.x - 100;
     ymin = ROICenter.y - 100;
 
-    cv::Point br( xmin, ymax );
-    cv::Point tl( xmax, ymin );
+    std::cout << "  Centro = [" << ROICenter.x << " , " << ROICenter.y << "]\n"
+              << "  Minimos = [" << xmin << " , " << ymin << "]" << std::endl;
 
-    return cv::Mat( this->loadedImage, cv::Rect( br, tl ) );
+    cv::Point br( xmin, ymin );
+    cv::Point tl( xmax, ymax );
+
+    return cv::Mat( this->loadedImage, cv::Rect( br, cv::Size( 200, 200 ) ) );
 }
 //_________________________________________________________
 void MainWindow::on_selectAreaButton_clicked() {
@@ -148,6 +152,9 @@ void MainWindow::on_selectAreaButton_clicked() {
 	ui->decodeButton->setEnabled( true );
 	cv::destroyAllWindows();
     this->setHidden( 0 );
+    cv::imshow( "50x50", generate50ROI() );
+    cv::imshow( "100x100", generate100ROI() );
+    cv::imshow( "200x200", generate200ROI() );
 }
 //_________________________________________________________
 void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void * parametro ) {
@@ -188,26 +195,33 @@ bool MainWindow::pointOnImage( cv::Point point ) {
 }
 //_________________________________________________________
 void MainWindow::on_decodeButton_clicked() {
-
-    bool comparative = false;
-    bool autoROI = false;
+    cv::destroyAllWindows();
+    bool comparative = true;
+    bool autoROI = true         ;
 
     if( comparative ) {
         if( ! autoROI ) {
             AFM::Comparative comparative( this->ROI, 150 );
             std::ofstream file( "comparativeReports.csv" );
-            file << comparative();
+            file << comparative( false );
             file.close();
             std::cout << "Savou!\n==========" << std::endl;
         } else {
             //For a 50x50 ROI
             cv::Mat roi50 = generate50ROI();
-            AFM::Comparative comparative50( roi50, 100 );
-
-
-
-
-
+            std::ofstream file( "50x50.csv" );
+            file << AFM::Comparative( roi50, 100 )( true );
+            //For a 100x100 ROI
+            cv::Mat roi100 = generate100ROI();
+            std::ofstream file2( "100x100.csv" );
+            file2 << AFM::Comparative( roi100, 100 )( true );
+            //For a 200x200 ROI
+            cv::Mat roi200 = generate200ROI();
+            std::ofstream file3( "200x200.csv" );
+            file3 << AFM::Comparative( roi200, 100 )( true );
+            file.close();
+            file2.close();
+            file3.close();
         }
 
 
@@ -217,7 +231,7 @@ void MainWindow::on_decodeButton_clicked() {
         metric = new FM::LaplacianEnergy();//OK
         // metric = new FM::TenenbaumGradient();//
         //metric = new FM::ThresholdedHistogram( 100 );
-        metric = new FM::ThreshGradient(100);
+        metric = new FM::ThreshGradient( 100 );
         Classic autofocus( this->loadedImage, this->ROI, metric );
         cv::Mat bestFocus = autofocus().clone();
         std::cout << "Achou o foco [MAIN WINDOW]\n";
