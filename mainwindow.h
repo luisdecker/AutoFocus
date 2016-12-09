@@ -7,6 +7,7 @@
 #include "focusmetrics.h"
 #include "autofocusmethods.h"
 
+
 namespace Ui {
     class MainWindow;
 }
@@ -26,6 +27,10 @@ public:
     bool pointOnImage( cv::Point ponto );
 
 private:
+    bool comparative = false;
+    bool autoROI = true;
+
+
     bool loaded = false;
     //Main window
     Ui::MainWindow

@@ -8,12 +8,12 @@ AFM::Comparative::Comparative( cv::Mat image, int threshold, int minDecode, int 
 		switch( method ) {
 
 			case 1: {//Treshold Gradient-Squared
-				this->metrics.push_back( new ThreshGradient( 50 ) );
+                this->metrics.push_back( new ThreshGradient( threshold ) );
 				break;
 			}//1
 
 			case 2: {//Thresholded Brenner Gradient
-				this->metrics.push_back( new BrennerGradient( 50 ) );
+                this->metrics.push_back( new BrennerGradient( threshold ) );
 				break;
 			}//2
 
@@ -43,7 +43,7 @@ AFM::Comparative::Comparative( cv::Mat image, int threshold, int minDecode, int 
 			}//7
 
 			case 8: { //Standard deviation based correlation
-				this->metrics.push_back( new StandartDeviationCorrelation );
+                this->metrics.push_back( new StandartDeviationCorrelation() );
 				break;
 			}//8
 
@@ -67,8 +67,9 @@ AFM::Comparative::Comparative( cv::Mat image, int threshold, int minDecode, int 
 
 	//Update the image to analise
 	this->image = image;
-    cv::imshow ("Comparative Constructor", image);
-    cv::waitKey(2000);
+    cv::imshow( "Comparative Constructor", image );
+    cv::waitKey( 2000 );
+    cv::destroyWindow( "Comparative Constructor" );
 	//
 
 }//Comparative constructor
@@ -79,19 +80,22 @@ AFM::Comparative::create_measure_table() {
     this->calculateMinMax();
 
     cv::Mat workingImage = prepare_image( this->image );
-	std::vector <std::vector <double>> rowMethod;
+    //minmax
+    //working
+    std::vector<std::vector<double>> lineMethod;
+    for( int plane = minDecode; plane <= maxDecode; plane += step ) {
+        //for each plane
+        std::vector<double> colPlaneValues;
+        cv::Mat decodedImage = decode_to( workingImage, plane, false );
+        for( FocusMetric * focusMetric : this->metrics ) {
+            double focusValue = focusMetric->measure_focus( decodedImage );
+            colPlaneValues.push_back( focusValue );
+        }
+        lineMethod.push_back( colPlaneValues );
 
-	for( FocusMetric * focusMetric : this->metrics ) {
-		std::vector<double> colPlane;
-		for( int plane = minDecode; plane <= maxDecode; plane = plane + step ) {
-			cv::Mat decodedImage = decode_to( workingImage, plane, false );
+    }
+    return lineMethod;
 
-			double focusValue = focusMetric->measure_focus( decodedImage );
-			colPlane.push_back( focusValue );
-		}
-		rowMethod.push_back( colPlane );
-	}
-	return rowMethod;
 
 }//Create Measures Table
 //_______________________________________________
@@ -119,13 +123,14 @@ AFM::Comparative::check_image( cv::Mat image ) {
 //_______________________________________________
 cv::Mat
 AFM::Comparative::decode_to( cv::Mat input, int plane , bool complexChannel ) {
-	cv::Mat decoded = HologramDecoder::decode_hologram( input, plane );
+
+    cv::Mat decoded = HologramDecoder::decode_hologram( input, plane ).clone();
 	cv::Mat splitted[2];
 	cv::split( decoded, splitted );
     cv::Mat channel = splitted[( int )complexChannel].clone();
     assert( haveMinMax );
     AFM::normalize( channel, minVal, maxVal );
-    channel.convertTo( channel, CV_8U, 255 );
+    channel.convertTo( channel, CV_8UC1, 255 );
     HologramDecoder::fftshift( channel );
 
     cv::imshow( "Comparative decode_to", channel );
@@ -138,31 +143,31 @@ AFM::Comparative::generate_csv( ) {
 	std::stringstream ss;
 	ss.str( "" );
 	//Generate the file header
-	ss << "Method;";
-	std::vector<int> distances = generate_distances();
-	for( int distance : distances ) {
-		ss << distance << ( distance == distances.back() ? "\n" : ";" ) ;
-	}
+
+
+    ss << ";";
+    //Gerar o cabeçalho
+    for( std::string name : methodsNames ) {
+        ss << name << ";";
+    }
+    ss << "\n";
+
 	std::string header( ss.str() );
     ss.str( "" );
+    std::vector<std::string> lines;
+    std::vector<int> distances = generate_distances();
+    int distanceIndex = 0;
+    for( std::vector<double> column : create_measure_table() ) {
+        ss << distances[distanceIndex] << ";";
+        distanceIndex++;
 
-
-	int currentMethodIndex = 0;
-	MetricsTable results = create_measure_table();
-
-    std::vector <std::string> lines;
-	for( std::string methodName : methodsNames ) {
-        std::vector<double> methodMeasures = results.at( currentMethodIndex );
-		ss.str( "" );
-		ss << methodName << ";";
-        uint measureIndex = 1;
-		for( double measure : methodMeasures ) {
-            ss << std::setprecision( 50 ) << measure << ( measureIndex == methodMeasures.size() ? "\n" : ";" );
-            measureIndex++;
-		}
-        lines.push_back( std::string( ss.str() ) );
-        currentMethodIndex++;
-	}
+        for( double measure : column ) {
+            ss << std::setprecision( 100 ) << measure << ";";
+        }
+        ss << "\n";
+        lines.push_back( ss.str() );
+        ss.str( "" );
+    }
     ss.str( "" );
     ss << header;
     for( std::string line : lines ) {
@@ -212,8 +217,9 @@ AFM::Comparative::create_points_table() {
     std::stringstream ss;
     int metricNameIndex = 0;
     ss << ";Focus Plane\n" ;
+    calculateMinMax();
     for( FocusMetric * metric : metrics ) {
-        double measuredFocus = get_focal_plane( *metric );
+        double measuredFocus = get_focal_plane( metric ) - 2600.;
         ss << methodsNames[metricNameIndex] << ";";
         ss << measuredFocus << "\n";
         metricNameIndex++;
@@ -224,10 +230,11 @@ AFM::Comparative::create_points_table() {
 
 //_______________________________________________
 double
-AFM::Comparative::get_focal_plane( FocusMetric metric ) {
-    cv::imshow("get_focal_plane",image);
-    cv::waitKey(1000);
-    return AFM::Classic( image, image, &metric ).find_focus();
+AFM::Comparative::get_focal_plane( FocusMetric * metric ) {
+    cv::imshow( "get_focal_plane", image );
+    cv::waitKey( 1000 );
+    cv::destroyWindow( "get_focal_plane" );
+    return AFM::Classic( cv::Mat(), cv::Mat() ).find_focus( image, image, metric, minVal, maxVal );
 }
 
 

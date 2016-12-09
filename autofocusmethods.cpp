@@ -18,6 +18,7 @@ Classic::split_hologram( cv::Mat image ) {
     cv::Mat splited[2];
     cv::split( image, splited );
     cv::Mat alce = splited[0].clone();
+
     cv::normalize( splited[0], alce, 0, 1, CV_MINMAX );
     HologramDecoder::fftshift( alce );
     alce.convertTo( alce, CV_8U, 255 );
@@ -58,9 +59,11 @@ std::pair<double, double> Classic::findMinMax( cv::Mat image ) {
 
 //_______________________________________________
 double
-Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
+Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric , double min, double max ) {
     std::map<int, double> focusValues; // map with key = focus plane, value = focus Value
+
     if( metric == nullptr ) {
+        std::cout << "Usando merica padrão!" << std::endl;
         metric = focusMetric;//Use standart metric
     }
     if( ROI.empty() || !( ROI.rows > 0 ) || !( ROI.cols > 0 ) ) {
@@ -79,10 +82,14 @@ Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
 
     cv::Mat originalImage = image.clone(), originalROI = ROI.clone();
     double minVal, maxVal;
-    std::pair <double, double> minMaxVals = findMinMax( originalROI );
-    minVal = minMaxVals.first;
-    maxVal = minMaxVals.second;
-
+    if( min == -1 || max == -1 ) {
+        std::pair <double, double> minMaxVals = findMinMax( originalROI );
+        minVal = minMaxVals.first;
+        maxVal = minMaxVals.second;
+    } else {
+        minVal = min;
+        maxVal = max;
+    }
 
     for( int i = this->minDecode; i < this->maxDecode; i = i + this->step ) {
         cv::Mat decoded = decode_to( originalROI, i ).clone();
@@ -90,7 +97,7 @@ Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
         cv::Mat splitted[2];
         cv::split( decoded, splitted );
         cv::Mat real = splitted[0].clone();
-        std::cout << "==> Pixel 10,10 da imagem crua = " << real.at<double>( 10, 10 ) << std::endl;
+        //std::cout << "==> Pixel 10,10 da imagem crua = " << real.at<double>( 10, 10 ) << std::endl;
         AFM::normalize( real, minVal, maxVal );
         real.convertTo( real, CV_8UC1, 255 );
 
@@ -98,13 +105,13 @@ Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
         //show_hologram( real, 100 );
         HologramDecoder::fftshift( real );
         cv::imshow( "Measured", real );
-        cv::waitKey(1);
+        cv::waitKey( DECODE_WAIT_TIME);
         if( i == 4000 ) {
             cv::imwrite( "CODIFICADA.png", real );
         }
 
 
-
+        std::cout << "  Medido " << metric->measure_focus(real)<<std::endl;
         focusValues.insert( std::pair<int, double>( i, metric->measure_focus( real ) ) );
     }
     double maior = DBL_MIN;
@@ -137,7 +144,7 @@ Classic::find_focus( cv::Mat image, cv::Mat ROI, FM::FocusMetric * metric ) {
 
     cv::destroyAllWindows();
     //Here, returns the maximum/minimum, according to the method minMax
-    switch( focusMetric->minMaxType ) {
+    switch( metric->minMaxType ) {
         case FM::FocusMetric::MAXIMIZATION: {
             return parMaior.first;
             break;

@@ -8,6 +8,8 @@
 #include "focusmetrics.h"
 #include "hologramdecoder.h"
 
+#define DECODE_WAIT_TIME 0
+
 namespace AFM {
     //Normalize the image
     inline cv::Mat
@@ -30,11 +32,14 @@ namespace AFM {
 
         //Returns the plane of focus
         double
-		find_focus( cv::Mat image = cv::Mat(), cv::Mat ROI = cv::Mat(), FM::FocusMetric * metric = 0 );
+        find_focus( cv::Mat image = cv::Mat(), cv::Mat ROI = cv::Mat(), FM::FocusMetric * metric = 0, double min=-1, double max = -1 );
 
         //Get the image in focus
 		cv::Mat
-        operator()() {return decode_to( this->ROI, find_focus() );}
+        operator()() {
+            cv::Mat hologram = decode_to( this->ROI, find_focus() );
+           return split_hologram(hologram);
+        }
 
 	private:
 
@@ -66,11 +71,11 @@ namespace AFM {
 
 		//Minimal and maximal values to try to find the focus.
 		int
-		minDecode = 0, maxDecode = 12000;
+        minDecode = 200, maxDecode = 15000;
 
 		//Step between focus planes;
 		int
-		step = 50;
+        step = 200;
 
 	};
 
@@ -95,14 +100,14 @@ namespace AFM {
 	public:
 		Comparative( cv::Mat image,
 					 int threshold = 50,
-					 int minDecode = 0,
+                     int minDecode = 200,
 					 int maxDecode = 15000,
                      int step = 200 );
 
         //Operator (), returns a comparative table with the detected focus planes, or with the measures
         //at each plane.
         std::string
-        operator()(bool focusPlane);
+        operator()( bool focusPlane );
 
 		//A table with all the measured metrics
 		typedef std::vector < std::vector  <double > >
@@ -140,9 +145,9 @@ namespace AFM {
         std::string
         create_points_table();
 
-        //Gets the focal plane detected by given metric
+        //Gets the focal plane detected adby given metric
         double
-        get_focal_plane(FM::FocusMetric metric);
+        get_focal_plane( FM::FocusMetric * metric );
 
 		//___________________________________________________________
 		//All the focus metrics used to comparison.
@@ -175,11 +180,11 @@ namespace AFM {
         //Ordered name of the metrics
         const std::string
         methodsNames[10] = {"Treshold Gradient-Squared", "Thresholded Brenner Gradient" ,
-                                      "Tenenbaum Gradient", "Energy of Laplacian", "Thresholded Histogram Range",
-                                      "Normalized Variance", "Auto Corretalion", "Standard deviation based correlation" ,
-                                      "Image Power" , "Thresholded pixel-count"
-                                     };
-        };
+                            "Tenenbaum Gradient", "Energy of Laplacian", "Thresholded Histogram Range",
+                            "Normalized Variance", "Auto Corretalion", "Standard deviation based correlation" ,
+                            "Image Power" , "Thresholded pixel-count"
+                           };
+    };
 
 }
 #endif // AUTOFOCUSMETHODS_H

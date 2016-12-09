@@ -8,6 +8,23 @@
 HologramDecoder::HologramDecoder() {
 }
 
+cv::Mat HologramDecoder::generate_sintethic( cv::Mat image, int focalPoint ) {
+    cv::Mat coded = decode_hologram( image, -focalPoint );
+    cv::Mat splited[2];
+    cv::split( coded, splited );
+    cv::Mat result = splited[0].clone();
+    std::cout << "______________\n"
+              << "Sintetica original em 10,10\n"
+              << splited[0].at<double>( 10, 10 )
+              << std::endl;
+    cv::normalize( splited[0], result, 1, 0 ,CV_MINMAX);
+    result.convertTo( result, CV_8U, 255 );
+    result = HologramDecoder::fftshift( result );
+    cv::imshow( "Sintethic", result );
+    cv::waitKey();
+    return result;
+}
+
 cv::Mat HologramDecoder::decode_hologram( cv::Mat hologram, float z, float lambda, float dx, float dy ) {
     return fresnel( hologram, dx, dy, lambda * z, lambda );
 }
@@ -37,7 +54,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
     cv::Mat part1x = cv::Mat::ones( hologram.rows, 1, CV_32FC1 );  //ones(Nyy,1)
     cv::Mat part2x = cv::Mat( 1, hologram.cols, CV_32FC1 );  //[-Nxx/2 : Nxx/2-1]
     //
-    float *aux = new float[hologram.cols];
+    float * aux = new float[hologram.cols];
     int index = 0;
     /*Cria um vetor gradiente com o tamanho em x da imagem*/
     for( int i = ( -1 * ( hologram.cols / 2 ) ); i < ( hologram.cols / 2 ); i++ ) {
@@ -85,7 +102,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
     part2u = cv::Mat( part2x.rows, part2x.cols, CV_32F, aux );
     cv::Mat u = part1u * part2u * dfx; //U pronto
     //
-    delete aux;
+
     aux = new float[hologram.rows];
     index = 0;
     for( int i = ( -1 * ( hologram.rows ) / 2 ); i < ( hologram.rows ) / 2; i++ ) {
@@ -93,7 +110,7 @@ cv::Mat HologramDecoder::fresnel( cv::Mat hologramColor, float dx, float dy, flo
         index++;
     }
     cv::Mat part1v = cv::Mat( 1, hologram.rows, CV_32FC1, aux );
-    delete aux;
+
     cv::Mat part2v = cv::Mat::ones( 1, hologram.cols, CV_32F );
     cv::Mat part1vtanspost = cv::Mat( part1y.rows, part1y.cols, part1v.type() );
     cv::transpose( part1v, part1vtanspost );

@@ -21,7 +21,7 @@ Main focus measurement functions
 double FM::ThreshGradient::measure_focus( cv::Mat image ) const {
     assert( check_image( image ) );
 	image.convertTo( image, CV_8UC1 );
-	double sum;
+    double sum = 0;
 	for( int x = 0; x < image.cols; x++ ) {
 		for( int y = 0; y < image.rows; y++ ) {
 			uchar pixelXY = image.at<uchar>( y, x );

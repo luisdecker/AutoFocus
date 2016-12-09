@@ -152,9 +152,11 @@ void MainWindow::on_selectAreaButton_clicked() {
 	ui->decodeButton->setEnabled( true );
 	cv::destroyAllWindows();
     this->setHidden( 0 );
-    cv::imshow( "50x50", generate50ROI() );
-    cv::imshow( "100x100", generate100ROI() );
-    cv::imshow( "200x200", generate200ROI() );
+    if( comparative && autoROI ) {
+        cv::imshow( "50x50", generate50ROI() );
+        cv::imshow( "100x100", generate100ROI() );
+        cv::imshow( "200x200", generate200ROI() );
+    }
 }
 //_________________________________________________________
 void MainWindow::cvMouseHandler( int evento, int x, int y, int flags, void * parametro ) {
@@ -196,42 +198,63 @@ bool MainWindow::pointOnImage( cv::Point point ) {
 //_________________________________________________________
 void MainWindow::on_decodeButton_clicked() {
     cv::destroyAllWindows();
-    bool comparative = true;
-    bool autoROI = true         ;
-
+    //  cv::Mat sinthetic = HologramDecoder::generate_sintethic( loadedImage, -4000 );
+    //  cv::imwrite( "sintethic.png", sinthetic );
     if( comparative ) {
         if( ! autoROI ) {
             AFM::Comparative comparative( this->ROI, 150 );
             std::ofstream file( "comparativeReports.csv" );
             file << comparative( false );
             file.close();
+
             std::cout << "Savou!\n==========" << std::endl;
         } else {
+            AFM::Comparative * comparative;
+
             //For a 50x50 ROI
             cv::Mat roi50 = generate50ROI();
+            cv::imwrite( "ROI50.png", roi50 );
             std::ofstream file( "50x50.csv" );
-            file << AFM::Comparative( roi50, 100 )( true );
+            std::ofstream graph50( "50x50_grafico.csv" );
+            comparative = new AFM::Comparative( roi50, 100 );
+            file << comparative->operator()( true );
+            graph50 << comparative->operator()( false );
+            file.close();
+            graph50.close();
+
             //For a 100x100 ROI
             cv::Mat roi100 = generate100ROI();
+            cv::imwrite( "ROI100.png", roi100 );
             std::ofstream file2( "100x100.csv" );
-            file2 << AFM::Comparative( roi100, 100 )( true );
+            std::ofstream graph100( "100x100_grafico.csv" );
+            comparative = new AFM::Comparative( roi100, 100 );
+            file2 << comparative->operator()( true );
+            graph100 << comparative->operator()( false );
+            file2.close();
+            graph100.close();
+
             //For a 200x200 ROI
             cv::Mat roi200 = generate200ROI();
+            cv::imwrite( "ROI200.png", roi200 );
             std::ofstream file3( "200x200.csv" );
-            file3 << AFM::Comparative( roi200, 100 )( true );
-            file.close();
-            file2.close();
+            std::ofstream graph200( "200x200_grafico.csv" );
+            comparative = new  AFM::Comparative( roi200, 100 );
+            file3 << comparative->operator()( true );
+            graph200 << comparative->operator()( false );
             file3.close();
+            graph200.close();
+            exit( 0 );
         }
 
 
     } else {
+        std::cout << "_____INICIANDO TESTES NAO-COMPARATIVOS_____" << std::endl;
         //FM::FocusMetric * metric = new FM::BrennerGradient( 50 );//OK
         FM::FocusMetric * metric = new FM::ImagePower( 50 ); //Ok
         metric = new FM::LaplacianEnergy();//OK
         // metric = new FM::TenenbaumGradient();//
         //metric = new FM::ThresholdedHistogram( 100 );
-        metric = new FM::ThreshGradient( 100 );
+        metric = new FM::ThreshGradient( 200 );
         Classic autofocus( this->loadedImage, this->ROI, metric );
         cv::Mat bestFocus = autofocus().clone();
         std::cout << "Achou o foco [MAIN WINDOW]\n";
